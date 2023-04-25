@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: oci-cert-operator
+  namespace: default
+  labels:
+    app: oci-cert-operator
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: oci-cert-operator
+  template:
+    metadata:
+      labels:
+        app: oci-cert-operator
+    spec:
+      serviceAccountName: oci-cert-operator
+      securityContext:
+        runAsUser:
+          1000
+      imagePullSecrets:
+      - name: ocirsecret
+      containers:
+      - env:
+        - name: VERBOSE
+          value: "false"
+        - name: DEBUG
+          value: "false"
+        - name: NAMESPACE
+          value: ALL
+        - name: LIVENESS
+          value: "true"
+        name: kopf-operator
+        image: <region-key>/<tenancy-namespace>/oci-cert-operator:latest
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "50m"
+          limits:
+            memory: "128Mi"
+            cpu: "100m"
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 8080
