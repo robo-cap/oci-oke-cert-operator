@@ -12,8 +12,7 @@ The operator performs the following operations:
 ## Prerequisites:
 
 - [OKE](https://docs.oracle.com/en-us/iaas/Content/ContEng/Concepts/contengoverview.htm) cluster with managed Kubernetes worker nodes
-- Worker node where the operator runs must be authorized to read OKE clusters and manage OCI Certificates in the compartment using [InstancePrincipal](https://docs.oracle.com/en-us/iaas/Content/Identity/Tasks/callingservicesfrominstances.htm#setup) authorization
-- Authenticate to [Oracle Cloud Infrastructure Registry (OCIR)](https://docs.oracle.com/en-us/iaas/Content/Functions/Tasks/functionslogintoocir.htm)
+- Authenticate build environment and OKE with [Oracle Cloud Infrastructure Registry (OCIR)](https://docs.oracle.com/en-us/iaas/Content/Functions/Tasks/functionslogintoocir.htm)
 
 ## Getting Started
 
@@ -24,6 +23,27 @@ Execute below commands to build and push the container image to OCIR:
   `$ docker build -t <region-key>.ocir.io/<tenancy-namespace>/oci-cert-operator:latest`
   
   `$ docker push <region-key>.ocir.io/<tenancy-namespace>/oci-cert-operator:latest`
+
+### Setup OCI Dynamic Group and Policies
+
+1. Create one dynamic group named `cert-operator` with the following matching rule:
+  `instance.compartment.id = '<OKE_cluster_compartment_ocid>'`
+
+    **Note**:
+
+    It's strongly recommended to:
+    - use [NodeAffinity](https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/) when deploying the operator and take advantage of the [NodePool Kubernetes Labels](https://docs.oracle.com/en-us/iaas/Content/ContEng/Tasks/contengmodifyingnodepool.htm) for this
+
+    - attach Node Tags to the nodePool where operator should run using Defined Tags (the configured tags and labels will not apply to the exiting nodes in the node pool but only to the ones which will be created in the future)
+
+    - update the dynamic-group match rule to include the defined tags configured before:
+
+    `All {instance.compartment.id='<OKE_cluster_compartment_ocid>', tag.<tag_namespace>.<tag_key>.value='<tag_value>'}`
+
+2. Create operator policies (in the same compartment as the OKE cluster):
+  `Allow dynamic-group cert-operator to read clusters in compartment <compartment_name>`
+  `Allow dynamic-group cert-operator to manage leaf-certificates in compartment <compartment_name>`
+  
 
 ### Configure Kubernetes ImagePull Secret
 
