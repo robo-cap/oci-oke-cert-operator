@@ -67,7 +67,7 @@ Update the container image and imagePullSecrets in the `operator.yaml` file and 
 The default compartment where certificates will be created is the same compartment where the OKE cluster is created.
 It is possible to customize the compartment by setting the container environment variable: `COMPARTMENT_OCID` to the desired compartment_ocid (`ocid1.compartment.oc1..diqq`).
 
-If used to replicate the certificates created by the [cert-manager](https://cert-manager.io/) is necessary to configure the `secretTemplate` where to define the labels: `sync-to-oci: "yes"`
+If used to replicate the certificates created by the [cert-manager](https://cert-manager.io/) is necessary to configure the [secretTemplate](https://cert-manager.io/docs/usage/certificate/#creating-certificate-resources) where to define the label: `sync-to-oci: "yes"`
 
 ## Limitations
 
